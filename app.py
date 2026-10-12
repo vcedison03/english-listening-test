@@ -143,4 +143,4 @@ else:
         current_item = st.session_state.test_questions[st.session_state.step]
         
         st.subheader(
-            f"Question {st.session_state.step + 1} of {total_questions}"
+            f"Question {st.session_state.step + 1} of {total_questions}")
