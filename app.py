@@ -4,18 +4,18 @@ from difflib import SequenceMatcher
 from gtts import gTTS
 import streamlit as st
 
-# Configuración de la página
+# Page configuration
 st.set_page_config(
     page_title="Practice of English Tenses", page_icon="🎧", layout="centered"
 )
 
 st.title("🎧 Practice of English Tenses")
 st.write(
-    "Escucha el audio generado y escribe exactamente la frase en inglés que escuchas."
+    "Listen to the generated audio and type exactly the sentence you hear in English."
 )
 
-# Banco de vocabulario por categorías
-sujetos = [
+# Vocabulary bank by categories
+subjects = [
     "The teacher",
     "A student",
     "My friend",
@@ -25,190 +25,188 @@ sujetos = [
     "The doctor",
     "A mechanic",
 ]
-verbos_presente = [
-    ("drinks", "toma"),
-    ("prepares", "prepara"),
-    ("reads", "lee"),
-    ("paints", "pinta"),
-    ("cleans", "limpia"),
+verbs_present = [
+    ("drinks", "drinks / drinks coffee"),
+    ("prepares", "prepares"),
+    ("reads", "reads"),
+    ("paints", "paints"),
+    ("cleans", "cleans"),
 ]
-verbos_futuro = [
-    ("visit", "visitará"),
-    ("build", "construirá"),
-    ("buy", "comprará"),
-    ("learn", "aprenderá"),
-    ("organize", "organizará"),
+verbs_future = [
+    ("visit", "will visit"),
+    ("build", "will build"),
+    ("buy", "will buy"),
+    ("learn", "will learn"),
+    ("organize", "will organize"),
 ]
-objetos = [
-    ("coffee", "café"),
-    ("a book", "un libro"),
-    ("a house", "una casa"),
-    ("a car", "un carro"),
-    ("a project", "un proyecto"),
+objects = [
+    ("coffee", "coffee"),
+    ("a book", "a book"),
+    ("a house", "a house"),
+    ("a car", "a car"),
+    ("a project", "a project"),
 ]
-lugares = [
-    ("in the morning", "por la mañana"),
-    ("at home", "en casa"),
-    ("in the office", "en la oficina"),
-    ("every day", "todos los días"),
+locations = [
+    ("in the morning", "in the morning"),
+    ("at home", "at home"),
+    ("in the office", "in the office"),
+    ("every day", "every day"),
 ]
 
 
-def generar_todas_las_frases():
-    """Genera un banco completo de frases posibles para evitar duplicados."""
-    todas = []
+def generate_all_sentences():
+    """Generates a complete bank of possible sentences to avoid duplicates."""
+    all_sentences = []
     
-    # Presente Simple
-    for sujeto in sujetos:
-        for verbo_en, verbo_es in verbos_presente:
-            for obj_en, obj_es in objetos:
-                for lugar_en, lugar_es in lugares:
-                    todas.append({
-                        "tiempo": "Presente Simple",
-                        "en": f"{sujeto} {verbo_en} {obj_en} {lugar_en}.",
-                        "es": f"{sujeto} {verbo_es} {obj_es} {lugar_es}."
+    # Simple Present
+    for subject in subjects:
+        for verb_en, verb_es in verbs_present:
+            for obj_en, obj_es in objects:
+                for loc_en, loc_es in locations:
+                    all_sentences.append({
+                        "tense": "Simple Present",
+                        "en": f"{subject} {verb_en} {obj_en} {loc_en}.",
+                        "es": f"{subject} {verb_es} {obj_es} {loc_es}."
                     })
 
-    # Futuro Simple
-    for sujeto in sujetos:
-        for verbo_en, verbo_es in verbos_futuro:
-            for obj_en, obj_es in objetos:
-                todas.append({
-                    "tiempo": "Futuro Simple",
-                    "en": f"{sujeto} will {verbo_en} {obj_en} tomorrow.",
-                    "es": f"{sujeto} {verbo_es} {obj_es} mañana."
+    # Simple Future
+    for subject in subjects:
+        for verb_en, verb_es in verbs_future:
+            for obj_en, obj_es in objects:
+                all_sentences.append({
+                    "tense": "Simple Future",
+                    "en": f"{subject} will {verb_en} {obj_en} tomorrow.",
+                    "es": f"{subject} {verb_es} {obj_es} tomorrow."
                 })
 
-    # Presente Continuo
-    for sujeto in sujetos:
-        for verbo_en, verbo_es in [("working on", "trabajando en"), ("studying", "estudiando")]:
-            for obj_en, obj_es in objetos:
-                todas.append({
-                    "tiempo": "Presente Continuo",
-                    "en": f"{sujeto} is {verbo_en} {obj_en} right now.",
-                    "es": f"{sujeto} está {verbo_es} {obj_es} ahora mismo."
+    # Present Continuous
+    for subject in subjects:
+        for verb_en, verb_es in [("working on", "is working on"), ("studying", "is studying")]:
+            for obj_en, obj_es in objects:
+                all_sentences.append({
+                    "tense": "Present Continuous",
+                    "en": f"{subject} is {verb_en} {obj_en} right now.",
+                    "es": f"{subject} {verb_es} {obj_es} right now."
                 })
                 
-    return todas
+    return all_sentences
 
 
-# Inicializar el estado de la sesión
-if "configurado" not in st.session_state:
-    st.session_state.configurado = False
-    st.session_state.paso = 0
-    st.session_state.puntuacion = 0
-    st.session_state.respondido = False
-    st.session_state.resultado_ultimo = None
-    st.session_state.preguntas_test = []
-    st.session_state.tolerancia_elegida = 0.85
+# Initialize session state
+if "configured" not in st.session_state:
+    st.session_state.configured = False
+    st.session_state.step = 0
+    st.session_state.score = 0
+    st.session_state.answered = False
+    st.session_state.last_result = None
+    st.session_state.test_questions = []
+    st.session_state.chosen_tolerance = 0.85
 
-# Pantalla de configuración inicial (antes de empezar)
-if not st.session_state.configurado:
-    st.subheader("⚙️ Configuración del Test")
+# Initial configuration screen (before starting)
+if not st.session_state.configured:
+    st.subheader("⚙️ Test Settings")
     
-    # Calcular el máximo posible de frases únicas
-    banco_temporal = generar_todas_las_frases()
-    max_preguntas = len(banco_temporal)
+    # Calculate the maximum number of unique sentences
+    temp_bank = generate_all_sentences()
+    max_questions = len(temp_bank)
     
-    total_elegido = st.slider(
-        "¿Cuántas preguntas deseas en este test?",
+    total_chosen = st.slider(
+        "How many questions would you like in this test?",
         min_value=3,
-        max_value=min(20, max_preguntas),
+        max_value=min(20, max_questions),
         value=5
     )
 
-    # Selector para el nivel de exigencia / tolerancia
-    modo_exigencia = st.select_slider(
-        "Nivel de exigencia en la calificación:",
-        options=["Muy flexible (70%)", "Flexible (80%)", "Normal (85%)", "Estricto (95%)", "Exacto (100%)"],
+    # Grading strictness mode selector
+    strictness_mode = st.select_slider(
+        "Grading strictness level:",
+        options=["Very Flexible (70%)", "Flexible (80%)", "Normal (85%)", "Strict (95%)", "Exact (100%)"],
         value="Normal (85%)"
     )
 
-    # Mapear la opción seleccionada a un valor decimal
-    mapeo_tolerancia = {
-        "Muy flexible (70%)": 0.70,
+    # Map the selected option to a decimal threshold
+    tolerance_map = {
+        "Very Flexible (70%)": 0.70,
         "Flexible (80%)": 0.80,
         "Normal (85%)": 0.85,
-        "Estricto (95%)": 0.95,
-        "Exacto (100%)": 1.00
+        "Strict (95%)": 0.95,
+        "Exact (100%)": 1.00
     }
     
-    if st.button("🚀 Comenzar Test"):
-        st.session_state.preguntas_test = random.sample(banco_temporal, total_elegido)
-        st.session_state.tolerancia_elegida = mapeo_tolerancia[modo_exigencia]
-        st.session_state.configurado = True
-        st.session_state.paso = 0
-        st.session_state.puntuacion = 0
+    if st.button("🚀 Start Test"):
+        st.session_state.test_questions = random.sample(temp_bank, total_chosen)
+        st.session_state.chosen_tolerance = tolerance_map[strictness_mode]
+        st.session_state.configured = True
+        st.session_state.step = 0
+        st.session_state.score = 0
         st.rerun()
 
 else:
-    total_preguntas = len(st.session_state.preguntas_test)
+    total_questions = len(st.session_state.test_questions)
 
-    # Si la prueba no ha terminado
-    if st.session_state.paso < total_preguntas:
-        ej_actual = st.session_state.preguntas_test[st.session_state.paso]
+    # If the test is ongoing
+    if st.session_state.step < total_questions:
+        current_item = st.session_state.test_questions[st.session_state.step]
         
         st.subheader(
-            f"Pregunta {st.session_state.paso + 1} de {total_preguntas}"
+            f"Question {st.session_state.step + 1} of {total_questions}"
         )
-        st.info(f"Tiempo verbal: **{ej_actual['tiempo']}**")
+        st.info(f"Verb Tense: **{current_item['tense']}**")
 
-        # Generar o recuperar el audio guardado en la sesión
-        if "audio_bytes" not in st.session_state or st.session_state.get("paso_audio") != st.session_state.paso:
-            tts = gTTS(text=ej_actual["en"], lang="en")
+        # Generate or retrieve cached audio in session state
+        if "audio_bytes" not in st.session_state or st.session_state.get("audio_step") != st.session_state.step:
+            tts = gTTS(text=current_item["en"], lang="en")
             fp = BytesIO()
             tts.write_to_fp(fp)
             st.session_state.audio_bytes = fp.getvalue()
-            st.session_state.paso_audio = st.session_state.paso
+            st.session_state.audio_step = st.session_state.step
 
         st.audio(st.session_state.audio_bytes, format="audio/mp3")
 
-        # Formulario de respuesta
-        with st.form(key=f"form_{st.session_state.paso}"):
-            respuesta = st.text_input(
-                "Escribe lo que escuchaste en inglés:", key=f"input_{st.session_state.paso}"
+        # Answer submission form
+        with st.form(key=f"form_{st.session_state.step}"):
+            user_response = st.text_input(
+                "Type what you heard in English:", key=f"input_{st.session_state.step}"
             )
-            submit_button = st.form_submit_button(label="Enviar respuesta")
+            submit_button = st.form_submit_button(label="Submit Answer")
 
             if submit_button:
-                limpia_original = ej_actual["en"].rstrip("?.!").lower()
-                limpia_respuesta = respuesta.rstrip("?.!").lower()
+                clean_original = current_item["en"].rstrip("?.!").lower()
+                clean_response = user_response.rstrip("?.!").lower()
 
-                # Calificación basada en la tolerancia elegida por el usuario
-                similitud = SequenceMatcher(None, limpia_respuesta, limpia_original).ratio()
+                # Similarity scoring based on the user's chosen threshold
+                similarity = SequenceMatcher(None, clean_response, clean_original).ratio()
 
-                st.session_state.respondido = True
-                if similitud >= st.session_state.tolerancia_elegida:
-                    st.session_state.puntuacion += 1
-                    st.session_state.resultado_ultimo = "correcto"
+                st.session_state.answered = True
+                if similarity >= st.session_state.chosen_tolerance:
+                    st.session_state.score += 1
+                    st.session_state.last_result = "correct"
                 else:
-                    st.session_state.resultado_ultimo = "incorrecto"
+                    st.session_state.last_result = "incorrect"
                 st.rerun()
 
-        # Mostrar retroalimentación si ya envió la respuesta en esta pregunta
-        if st.session_state.get("respondido", False):
-            if st.session_state.resultado_ultimo == "correcto":
-                st.success("¡Correcto! 🎉")
+        # Display feedback if the answer has been submitted for this step
+        if st.session_state.get("answered", False):
+            if st.session_state.last_result == "correct":
+                st.success("Correct! 🎉")
             else:
-                st.error("❌ No es exacto.")
-                st.write(f"**Lo que era:** {ej_actual['en']}")
-                st.write(f"**Lo que pusiste:** {st.session_state.get('input_' + str(st.session_state.paso), '')}")
+                st.error("❌ Not quite right.")
+                st.write(f"**Expected answer:** {current_item['en']}")
+                st.write(f"**Your answer:** {st.session_state.get('input_' + str(st.session_state.step), '')}")
 
-            st.write(f"**Traducción:** {ej_actual['es']}")
-
-            if st.button("Siguiente pregunta ➡️"):
-                st.session_state.paso += 1
-                st.session_state.respondido = False
+            if st.button("Next Question ➡️"):
+                st.session_state.step += 1
+                st.session_state.answered = False
                 st.rerun()
 
     else:
-        # Pantalla final
+        # Final results screen
         st.balloons()
-        st.success("¡Prueba finalizada!")
+        st.success("Test Completed!")
         st.write(
-            f"Tu calificación final: **{st.session_state.puntuacion} de {total_preguntas}** aciertos."
+            f"Your final score: **{st.session_state.score} out of {total_questions}** correct answers."
         )
 
-        if st.button("🔄 Configurar nuevo test"):
-            st.session_state.configurado = False
+        if st.button("🔄 Configure New Test"):
+            st.session_state.configured = False
             st.rerun()
