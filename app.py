@@ -1,14 +1,15 @@
 from io import BytesIO
 import random
+from difflib import SequenceMatcher
 from gtts import gTTS
 import streamlit as st
 
 # Configuración de la página
 st.set_page_config(
-    page_title="Test de Listening en Inglés", page_icon="🎧", layout="centered"
+    page_title="Practice of English Tenses", page_icon="🎧", layout="centered"
 )
 
-st.title("🎧 Test de Listening Dinámico")
+st.title("🎧 Practice of English Tenses")
 st.write(
     "Escucha el audio generado y escribe exactamente la frase en inglés que escuchas."
 )
@@ -99,6 +100,7 @@ if "configurado" not in st.session_state:
     st.session_state.respondido = False
     st.session_state.resultado_ultimo = None
     st.session_state.preguntas_test = []
+    st.session_state.tolerancia_elegida = 0.85
 
 # Pantalla de configuración inicial (antes de empezar)
 if not st.session_state.configurado:
@@ -114,10 +116,26 @@ if not st.session_state.configurado:
         max_value=min(20, max_preguntas),
         value=5
     )
+
+    # Selector para el nivel de exigencia / tolerancia
+    modo_exigencia = st.select_slider(
+        "Nivel de exigencia en la calificación:",
+        options=["Muy flexible (70%)", "Flexible (80%)", "Normal (85%)", "Estricto (95%)", "Exacto (100%)"],
+        value="Normal (85%)"
+    )
+
+    # Mapear la opción seleccionada a un valor decimal
+    mapeo_tolerancia = {
+        "Muy flexible (70%)": 0.70,
+        "Flexible (80%)": 0.80,
+        "Normal (85%)": 0.85,
+        "Estricto (95%)": 0.95,
+        "Exacto (100%)": 1.00
+    }
     
     if st.button("🚀 Comenzar Test"):
-        # Seleccionar preguntas aleatorias únicas para toda la prueba
         st.session_state.preguntas_test = random.sample(banco_temporal, total_elegido)
+        st.session_state.tolerancia_elegida = mapeo_tolerancia[modo_exigencia]
         st.session_state.configurado = True
         st.session_state.paso = 0
         st.session_state.puntuacion = 0
@@ -135,7 +153,7 @@ else:
         )
         st.info(f"Tiempo verbal: **{ej_actual['tiempo']}**")
 
-        # Generar o recuperar el audio guardado en la sesión (evita llamadas repetidas a gTTS)
+        # Generar o recuperar el audio guardado en la sesión
         if "audio_bytes" not in st.session_state or st.session_state.get("paso_audio") != st.session_state.paso:
             tts = gTTS(text=ej_actual["en"], lang="en")
             fp = BytesIO()
@@ -156,8 +174,11 @@ else:
                 limpia_original = ej_actual["en"].rstrip("?.!").lower()
                 limpia_respuesta = respuesta.rstrip("?.!").lower()
 
+                # Calificación basada en la tolerancia elegida por el usuario
+                similitud = SequenceMatcher(None, limpia_respuesta, limpia_original).ratio()
+
                 st.session_state.respondido = True
-                if limpia_respuesta == limpia_original:
+                if similitud >= st.session_state.tolerancia_elegida:
                     st.session_state.puntuacion += 1
                     st.session_state.resultado_ultimo = "correcto"
                 else:
