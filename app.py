@@ -1,97 +1,101 @@
 from io import BytesIO
 import random
-import difflib
 from gtts import gTTS
 import streamlit as st
 
 # Configuración de la página
 st.set_page_config(
-    page_title="Test de Listening Dinámico", page_icon="🎧", layout="centered"
+    page_title="Test de Listening en Inglés", page_icon="🎧", layout="centered"
 )
 
-st.title("🎧 Test de Listening Dinámico con Gramática")
+st.title("🎧 Test de Listening Dinámico")
 st.write(
-    "Practica tu comprensión auditiva con oraciones generadas dinámicamente."
+    "Escucha el audio generado y escribe exactamente la frase en inglés que escuchas."
 )
 
-# ==========================================
-# CONFIGURACIÓN EN LA BARRA LATERAL
-# ==========================================
-st.sidebar.header("⚙️ Configuración")
-
-# Nivel de exigencia (estilo del segundo código)
-nivel = st.sidebar.selectbox(
-    "Nivel de exigencia:", ["Estricto (90%)", "Medio (75%)", "Flexible (60%)"]
+# Configuración en la barra lateral
+st.sidebar.header("⚙️ Configuración del Test")
+dificultad = st.sidebar.selectbox(
+    "Grado de dificultad", ["Básico", "Intermedio", "Avanzado"]
 )
-if "Estricto" in nivel:
-  umbral_exito = 90.0
-elif "Flexible" in nivel:
-  umbral_exito = 60.0
-else:
-  umbral_exito = 75.0
-
-# Modo de cantidad de preguntas
-st.sidebar.markdown("---")
-modo_cantidad = st.sidebar.radio(
-    "Modo de cantidad de preguntas:", ["Número específico", "Indefinido"]
+modo_preguntas = st.sidebar.selectbox(
+    "Número de preguntas", [5, 10, 15, "Indefinido"]
 )
-if modo_cantidad == "Número específico":
-  cantidad_preguntas = st.sidebar.number_input(
-      "¿Cuántas preguntas deseas responder?",
-      min_value=1,
-      max_value=100,
-      value=5,
-      step=1,
-  )
-else:
-  cantidad_preguntas = "Indefinido"
 
-# ==========================================
-# BANCO DE VOCABULARIO
-# ==========================================
-sujetos = [
-    "The teacher",
-    "A student",
-    "My friend",
-    "The chef",
-    "An artist",
-    "Our neighbor",
-    "The doctor",
-    "A mechanic",
-]
-verbos_presente = [
-    ("drinks", "toma"),
-    ("prepares", "prepara"),
-    ("reads", "lee"),
-    ("paints", "pinta"),
-    ("cleans", "limpia"),
-]
-verbos_futuro = [
-    ("visit", "visitará"),
-    ("build", "construirá"),
-    ("buy", "comprará"),
-    ("learn", "aprenderá"),
-    ("organize", "organizará"),
-]
-objetos = [
-    ("coffee", "café"),
-    ("a book", "un libro"),
-    ("a house", "una casa"),
-    ("a car", "un carro"),
-    ("a project", "un proyecto"),
-]
-lugares = [
-    ("in the morning", "por la mañana"),
-    ("at home", "en casa"),
-    ("in the office", "en la oficina"),
-    ("every day", "todos los días"),
-]
+# Bancos de vocabulario según dificultad
+if dificultad == "Básico":
+  sujetos = ["The cat", "A dog", "My friend", "The boy"]
+  verbos_presente = [("drinks", "toma"), ("reads", "lee"), ("eats", "come")]
+  objetos = [("water", "agua"), ("an apple", "una manzana")]
+  lugares = [("at home", "en casa")]
+elif dificultad == "Intermedio":
+  sujetos = [
+      "The teacher",
+      "A student",
+      "My friend",
+      "The chef",
+      "Our neighbor",
+  ]
+  verbos_presente = [
+      ("drinks", "toma"),
+      ("prepares", "prepara"),
+      ("reads", "lee"),
+      ("paints", "pinta"),
+      ("cleans", "limpia"),
+  ]
+  verbos_futuro = [
+      ("visit", "visitará"),
+      ("buy", "comprará"),
+      ("learn", "aprenderá"),
+  ]
+  objetos = [
+      ("coffee", "café"),
+      ("a book", "un libro"),
+      ("a house", "una casa"),
+      ("a car", "un carro"),
+  ]
+  lugares = [
+      ("in the morning", "por la mañana"),
+      ("at home", "en casa"),
+      ("in the office", "en la oficina"),
+      ("every day", "todos los días"),
+  ]
+else:  # Avanzado
+  sujetos = [
+      "The experienced architect",
+      "An innovative software engineer",
+      "The university professor",
+  ]
+  verbos_presente = [
+      ("comprehensively analyzes", "analiza exhaustivamente"),
+      ("thoroughly investigates", "investiga a fondo"),
+  ]
+  verbos_futuro = [
+      ("successfully implement", "implementará exitosamente"),
+      ("completely revolutionize", "revolucionará por completo"),
+  ]
+  objetos = [
+      (
+          "complex algorithmic structures",
+          "estructuras algorítmicas complejas",
+      ),
+      ("advanced database systems", "sistemas de bases de datos avanzados"),
+  ]
+  lugares = [
+      (
+          "during the international conference",
+          "durante la conferencia internacional",
+      ),
+      ("within the corporate headquarters", "dentro de la sede corporativa"),
+  ]
 
 
 def generar_frase_aleatoria():
-  tiempo_tipo = random.choice(
-      ["Presente Simple", "Futuro Simple", "Presente Continuo"]
-  )
+  tiempos_disponibles = ["Presente Simple"]
+  if dificultad != "Básico":
+    tiempos_disponibles.extend(["Futuro Simple", "Presente Continuo"])
+
+  tiempo_tipo = random.choice(tiempos_disponibles)
   sujeto = random.choice(sujetos)
 
   if tiempo_tipo == "Presente Simple":
@@ -118,183 +122,96 @@ def generar_frase_aleatoria():
   return {"tiempo": tiempo_tipo, "en": en, "es": es}
 
 
-# ==========================================
-# INICIALIZACIÓN DEL ESTADO DE LA SESIÓN
-# ==========================================
-if "iniciado" not in st.session_state:
-  st.session_state.iniciado = False
-if "idx" not in st.session_state:
-  st.session_state.idx = 0
-if "historial" not in st.session_state:
-  st.session_state.historial = []
-if "aciertos" not in st.session_state:
-  st.session_state.aciertos = 0
-if "suma_porcentajes" not in st.session_state:
-  st.session_state.suma_porcentajes = 0.0
-if "ej_actual" not in st.session_state:
-  st.session_state.ej_actual = None
-if "respondido" not in st.session_state:
+# Inicializar el estado de la sesión para la prueba
+if "paso" not in st.session_state:
+  st.session_state.paso = 0
+  st.session_state.puntuacion = 0
+  st.session_state.ej_actual = generar_frase_aleatoria()
   st.session_state.respondido = False
-if "ultimo_resultado" not in st.session_state:
-  st.session_state.ultimo_resultado = None
-if "mostrar_resultados" not in st.session_state:
-  st.session_state.mostrar_resultados = False
+  st.session_state.resultado_ultimo = None
+  st.session_state.forzar_fin = False
 
-# Botón inicial para comenzar
-if not st.session_state.iniciado:
-  if st.button("🚀 Comenzar Test", type="primary"):
-    st.session_state.iniciado = True
-    st.session_state.idx = 0
-    st.session_state.historial = []
-    st.session_state.aciertos = 0
-    st.session_state.suma_porcentajes = 0.0
-    st.session_state.ej_actual = generar_frase_aleatoria()
-    st.session_state.respondido = False
-    st.session_state.mostrar_resultados = False
+# Definir límite de preguntas
+es_indefinido = modo_preguntas == "Indefinido"
+TOTAL_PREGUNTAS = 999999 if es_indefinido else int(modo_preguntas)
+
+# Botón para terminar en modo indefinido
+if es_indefinido and st.session_state.paso > 0:
+  if st.sidebar.button("🛑 Terminar test ahora"):
+    st.session_state.forzar_fin = True
     st.rerun()
 
-else:
-  # Botón para terminar en cualquier momento en la barra lateral
-  if not st.session_state.mostrar_resultados:
-    st.sidebar.markdown("---")
-    if st.sidebar.button("🛑 Terminar test y ver historial"):
-      st.session_state.mostrar_resultados = True
+# Si la prueba no ha terminado
+if st.session_state.paso < TOTAL_PREGUNTAS and not st.session_state.forzar_fin:
+  progreso_texto = (
+      f"Pregunta {st.session_state.paso + 1}"
+      if es_indefinido
+      else f"Pregunta {st.session_state.paso + 1} de {TOTAL_PREGUNTAS}"
+  )
+  st.subheader(progreso_texto)
+  st.info(f"Tiempo verbal: **{st.session_state.ej_actual['tiempo']}**")
+
+  # Generar audio con gTTS y reproducirlo en Streamlit
+  tts = gTTS(text=st.session_state.ej_actual["en"], lang="en")
+  fp = BytesIO()
+  tts.write_to_fp(fp)
+  fp.seek(0)
+  st.audio(fp.read(), format="audio/mp3")
+
+  # Formulario de respuesta
+  with st.form(key=f"form_{st.session_state.paso}"):
+    respuesta = st.text_input(
+        "Escribe lo que escuchaste en inglés:", key=f"input_{st.session_state.paso}"
+    )
+    submit_button = st.form_submit_button(label="Enviar respuesta")
+
+    if submit_button:
+      limpia_original = (
+          st.session_state.ej_actual["en"].rstrip("?.!").lower()
+      )
+      limpia_respuesta = respuesta.rstrip("?.!").lower()
+
+      st.session_state.respondido = True
+      if limpia_respuesta == limpia_original:
+        st.session_state.puntuacion += 1
+        st.session_state.resultado_ultimo = "correcto"
+      else:
+        st.session_state.resultado_ultimo = "incorrecto"
       st.rerun()
 
-  # Verificar si se acabaron las preguntas o se presionó terminar
-  limite_alcanzado = (
-      False
-      if cantidad_preguntas == "Indefinido"
-      else st.session_state.idx >= int(cantidad_preguntas)
+  # Mostrar retroalimentación si ya envió la respuesta en esta pregunta
+  if st.session_state.get("respondido", False):
+    if st.session_state.resultado_ultimo == "correcto":
+      st.success("¡Correcto! 🎉")
+    else:
+      st.error("❌ No es exacto.")
+      st.write(f"**Lo que era:** {st.session_state.ej_actual['en']}")
+      st.write(
+          f"**Lo que pusiste:** {st.session_state.get('input_' + str(st.session_state.paso), '')}"
+      )
+
+    st.write(f"**Traducción:** {st.session_state.ej_actual['es']}")
+
+    if st.button("Siguiente pregunta ➡️"):
+      st.session_state.paso += 1
+      st.session_state.respondido = False
+      if st.session_state.paso < TOTAL_PREGUNTAS:
+        st.session_state.ej_actual = generar_frase_aleatoria()
+      st.rerun()
+
+else:
+  # Pantalla final
+  st.balloons()
+  st.success("¡Prueba finalizada!")
+  preguntas_totales_contestadas = max(1, st.session_state.paso)
+  st.write(
+      f"Tu calificación final: **{st.session_state.puntuacion} de {preguntas_totales_contestadas}** aciertos."
   )
 
-  if st.session_state.mostrar_resultados or limite_alcanzado:
-    st.balloons()
-    st.success("🎉 ¡Prueba finalizada con éxito!")
-    st.markdown("---")
-    st.subheader("=" * 10 + " RESULTADOS FINALES Y REVISIÓN " + "=" * 10)
-    st.write(f"⚙️ **Nivel:** {nivel} (Umbral: {umbral_exito}%)")
-
-    total_respuestas = len(st.session_state.historial)
-    promedio = (
-        st.session_state.suma_porcentajes / total_respuestas
-        if total_respuestas > 0
-        else 0
-    )
-
-    st.metric("📝 Preguntas respondidas", total_respuestas)
-    st.metric(
-        "✅ Aprobadas", f"{st.session_state.aciertos} de {total_respuestas}"
-    )
-    st.metric("📊 Precisión promedio", f"{promedio:.1f}%")
-
-    st.markdown("---")
-    st.subheader("📋 LISTADO DE ORACIONES PRACTICADAS:")
-
-    if not st.session_state.historial:
-      st.info("No hay oraciones registradas en el historial todavía.")
-    else:
-      for item in st.session_state.historial:
-        with st.expander(
-            f"Pregunta #{item['n']} ({item['calificacion']:.1f}% - {item['estado_str']})"
-        ):
-          st.write(f"**Original (EN):** {item['oracion']}")
-          st.write(f"**Tu respuesta:** {item['respuesta']}")
-          st.write(f"**Calificación:** {item['calificacion']:.1f}%")
-
-    st.markdown("---")
-    if st.button("🔄 Volver a empezar"):
-      st.session_state.iniciado = False
-      st.session_state.respondido = False
-      st.session_state.mostrar_resultados = False
-      st.rerun()
-
-  else:
-    # Pregunta en curso
-    ej = st.session_state.ej_actual
-    st.info(f"Tiempo verbal: **{ej['tiempo']}**")
-
-    if cantidad_preguntas == "Indefinido":
-      st.markdown(
-          f"**Pregunta #{st.session_state.idx + 1} (Modo Indefinido)**"
-      )
-    else:
-      st.markdown(
-          f"**Pregunta #{st.session_state.idx + 1} de {int(cantidad_preguntas)}**"
-      )
-
-    # Generar y reproducir audio en memoria
-    tts = gTTS(text=ej["en"], lang="en")
-    fp = BytesIO()
-    tts.write_to_fp(fp)
-    fp.seek(0)
-    st.audio(fp.read(), format="audio/mp3")
-
-    st.info(
-        "🎧 Escucha el audio anterior y escribe exactamente la frase en inglés"
-        " que escuchas."
-    )
-
-    if not st.session_state.respondido:
-      with st.form(key=f"form_{st.session_state.idx}"):
-        respuesta = st.text_input(
-            "Tu respuesta en inglés:", key=f"input_{st.session_state.idx}"
-        )
-        enviar = st.form_submit_button("Calificar respuesta", type="primary")
-
-        if enviar:
-          if not respuesta.strip():
-            st.warning("Por favor escribe una respuesta antes de calificar.")
-          else:
-            limpia_original = ej["en"].rstrip("?.!").lower()
-            limpia_respuesta = respuesta.rstrip("?.!").lower()
-
-            # Cálculo de similitud mediante difflib (compatible con el nivel de exigencia)
-            similitud = (
-                difflib.SequenceMatcher(
-                    None, limpia_original, limpia_respuesta
-                ).ratio()
-                * 100
-            )
-            aprobado = similitud >= umbral_exito
-            estado_str = (
-                "¡Aprobado! ✅" if aprobado else "Por debajo del nivel ❌"
-            )
-
-            if aprobado:
-              st.session_state.aciertos += 1
-
-            st.session_state.suma_porcentajes += similitud
-
-            st.session_state.historial.append({
-                "n": st.session_state.idx + 1,
-                "oracion": ej["en"],
-                "respuesta": respuesta,
-                "calificacion": similitud,
-                "estado_str": estado_str,
-            })
-
-            st.session_state.ultimo_resultado = {
-                "similitud": similitud,
-                "estado_str": estado_str,
-                "esperada": ej["en"],
-                "traduccion": ej["es"],
-                "respuesta": respuesta,
-            }
-            st.session_state.respondido = True
-            st.rerun()
-    else:
-      res_u = st.session_state.ultimo_resultado
-      st.success(
-          f"Calificación: {res_u['similitud']:.1f}% -> {res_u['estado_str']}"
-      )
-      st.write(f"✍️ **Tu respuesta:** {res_u['respuesta']}")
-      st.write(f"🎯 **Frase esperada:** {res_u['esperada']}")
-      st.write(f"📖 **Traducción:** {res_u['traduccion']}")
-
-      st.markdown("---")
-      if st.button("Siguiente pregunta ➡️", type="primary"):
-        st.session_state.idx += 1
-        st.session_state.respondido = False
-        st.session_state.ej_actual = generar_frase_aleatoria()
-        st.rerun()
+  if st.button("🔄 Reiniciar test"):
+    st.session_state.paso = 0
+    st.session_state.puntuacion = 0
+    st.session_state.ej_actual = generar_frase_aleatoria()
+    st.session_state.respondido = False
+    st.session_state.forzar_fin = False
+    st.rerun()
