@@ -4,7 +4,7 @@ from gtts import gTTS
 import streamlit as st
 
 st.set_page_config(
-    page_title="Test de Listening en Inglés", page_icon="🎧", layout="centered"
+    page_title="Test Completo de Listening", page_icon="🎧", layout="centered"
 )
 
 # --- ESTILO CSS PARA EL FONDO DE LA BANDERA DE GRAN BRETAÑA ---
@@ -12,16 +12,15 @@ st.markdown(
     """
     <style>
     .stApp {
-        background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), 
+        background-image: linear-gradient(rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.55)), 
                           url("https://upload.wikimedia.org/wikipedia/en/a/ae/Flag_of_the_United_Kingdom.svg");
         background-size: cover;
         background-position: center;
         background-attachment: fixed;
     }
     
-    /* Contenedor principal con fondo semitransparente para mejor legibilidad */
     .block-container {
-        background-color: rgba(255, 255, 255, 0.90);
+        background-color: rgba(255, 255, 255, 0.92);
         padding: 2rem;
         border-radius: 15px;
         margin-top: 2rem;
@@ -36,12 +35,15 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-st.title("🎧 Test de Listening Dinámico")
+st.title("🎧 Test de Listening Avanzado")
 st.write(
     "Escucha el audio generado y escribe exactamente la frase en inglés que escuchas."
 )
 
-# Banco de vocabulario con traducción
+# ==========================================
+# BANCO EXTENSO DE VOCABULARIO Y ESTRUCTURAS
+# ==========================================
+
 sujetos = [
     ("The teacher", "El profesor"),
     ("A student", "Un estudiante"),
@@ -51,166 +53,178 @@ sujetos = [
     ("Our neighbor", "Nuestro vecino"),
     ("The doctor", "El doctor"),
     ("A mechanic", "Un mecánico"),
+    ("The engineer", "El ingeniero"),
+    ("The pilot", "El piloto"),
+    ("My sister", "Mi hermana"),
+    ("The scientist", "El científico"),
+    ("A writer", "Un escritor"),
+    ("The manager", "El gerente"),
 ]
-verbos_presente = [
-    ("drinks", "toma"),
-    ("prepares", "prepara"),
-    ("reads", "lee"),
-    ("paints", "pinta"),
-    ("cleans", "limpia"),
-]
-verbos_futuro = [
-    ("visit", "visitará"),
-    ("build", "construirá"),
-    ("buy", "comprará"),
-    ("learn", "aprenderá"),
-    ("organize", "organizará"),
-]
+
 objetos = [
-    ("coffee", "café"),
     ("a book", "un libro"),
     ("a house", "una casa"),
     ("a car", "un carro"),
-    ("a project", "un proyecto"),
+    ("a new project", "un nuevo proyecto"),
+    ("a report", "un informe"),
+    ("a song", "una canción"),
+    ("a meal", "una comida"),
+    ("a letter", "una carta"),
+    ("a website", "un sitio web"),
+    ("a plan", "un plan"),
 ]
-lugares = [
-    ("in the morning", "por la mañana"),
-    ("at home", "en casa"),
+
+lugares_tiempos = [
     ("in the office", "en la oficina"),
+    ("at home", "en casa"),
+    ("in the morning", "por la mañana"),
     ("every day", "todos los días"),
+    ("at the station", "en la estación"),
+    ("in the city", "en la ciudad"),
+    ("during the meeting", "durante la reunión"),
 ]
 
 
 def generar_frase_aleatoria():
-  tiempo_tipo = random.choice(
-      ["Presente Simple", "Futuro Simple", "Presente Continuo"]
-  )
+  # Los 12 tiempos verbales de la gramática inglesa
+  tiempos = [
+      "Present Simple",
+      "Present Continuous",
+      "Present Perfect",
+      "Present Perfect Continuous",
+      "Past Simple",
+      "Past Continuous",
+      "Past Perfect",
+      "Past Perfect Continuous",
+      "Future Simple (Will)",
+      "Future Continuous",
+      "Future Perfect",
+      "Future Perfect Continuous",
+  ]
+
+  tiempo_tipo = random.choice(tiempos)
   sujeto_en, sujeto_es = random.choice(sujetos)
+  obj_en, obj_es = random.choice(objetos)
+  lugar_en, lugar_es = random.choice(lugares_tiempos)
 
-  if tiempo_tipo == "Presente Simple":
-    verbo_en, verbo_es = random.choice(verbos_presente)
-    obj_en, obj_es = random.choice(objetos)
-    lugar_en, lugar_es = random.choice(lugares)
-    en = f"{sujeto_en} {verbo_en} {obj_en} {lugar_en}."
-    es = f"{sujeto_es} {verbo_es} {obj_es} {lugar_es}."
+  # Generación de la estructura gramatical según el tiempo
+  if tiempo_tipo == "Present Simple":
+    verbos = [
+        ("reads", "lee"),
+        ("prepares", "prepara"),
+        ("paints", "pinta"),
+        ("cleans", "limpia"),
+        ("writes", "escribe"),
+        ("inspects", "inspecciona"),
+    ]
+    v_en, v_es = random.choice(verbos)
+    en = f"{sujeto_en} {v_en} {obj_en} {lugar_en}."
+    es = f"{sujeto_es} {v_es} {obj_es} {lugar_es}."
 
-  elif tiempo_tipo == "Futuro Simple":
-    verbo_en, verbo_es = random.choice(verbos_futuro)
-    obj_en, obj_es = random.choice(objetos)
-    en = f"{sujeto_en} will {verbo_en} {obj_en} tomorrow."
-    es = f"{sujeto_es} {verbo_es} {obj_es} mañana."
+  elif tiempo_tipo == "Present Continuous":
+    verbos = [
+        ("reading", "leyendo"),
+        ("preparing", "preparando"),
+        ("painting", "pintando"),
+        ("cleaning", "limpiando"),
+        ("designing", "diseñando"),
+    ]
+    v_en, v_es = random.choice(verbos)
+    en = f"{sujeto_en} is {v_en} {obj_en} right now."
+    es = f"{sujeto_es} está {v_es} {obj_es} ahora mismo."
 
-  else:  # Presente Continuo
-    verbo_en, verbo_es = random.choice(
-        [("working on", "trabajando en"), ("studying", "estudiando")]
-    )
-    obj_en, obj_es = random.choice(objetos)
-    en = f"{sujeto_en} is {verbo_en} {obj_en} right now."
-    es = f"{sujeto_es} está {verbo_es} {obj_es} ahora mismo."
+  elif tiempo_tipo == "Present Perfect":
+    verbos = [
+        ("finished", "terminado"),
+        ("prepared", "preparado"),
+        ("bought", "comprado"),
+        ("built", "construido"),
+        ("written", "escrito"),
+    ]
+    v_en, v_es = random.choice(verbos)
+    en = f"{sujeto_en} has {v_en} {obj_en} today."
+    es = f"{sujeto_es} ha {v_es} {obj_es} hoy."
 
-  return {"tiempo": tiempo_tipo, "en": en, "es": es}
+  elif tiempo_tipo == "Present Perfect Continuous":
+    verbos = [
+        ("studying", "estudiando"),
+        ("working on", "trabajando en"),
+        ("building", "construyendo"),
+    ]
+    v_en, v_es = random.choice(verbos)
+    en = f"{sujeto_en} has been {v_en} {obj_en} for two hours."
+    es = f"{sujeto_es} ha estado {v_es} {obj_es} durante dos horas."
 
+  elif tiempo_tipo == "Past Simple":
+    verbos = [
+        ("bought", "compró"),
+        ("built", "construyó"),
+        ("painted", "pintó"),
+        ("cleaned", "limpió"),
+        ("found", "encontró"),
+    ]
+    v_en, v_es = random.choice(verbos)
+    en = f"{sujeto_en} {v_en} {obj_en} yesterday."
+    es = f"{sujeto_es} {v_es} {obj_es} ayer."
 
-TOTAL_PREGUNTAS = 5
+  elif tiempo_tipo == "Past Continuous":
+    verbos = [
+        ("reading", "leyendo"),
+        ("preparing", "preparando"),
+        ("cleaning", "limpiando"),
+        ("fixing", "reparando"),
+    ]
+    v_en, v_es = random.choice(verbos)
+    en = f"{sujeto_en} was {v_en} {obj_en} when I arrived."
+    es = f"{sujeto_es} estaba {v_es} {obj_es} cuando llegué."
 
-# Inicializar estado de la sesión
-if "paso" not in st.session_state:
-  st.session_state.paso = 0
-  st.session_state.puntuacion = 0
-  st.session_state.ej_actual = generar_frase_aleatoria()
-  st.session_state.respondido = False
-  st.session_state.historial = []
+  elif tiempo_tipo == "Past Perfect":
+    verbos = [
+        ("completed", "completado"),
+        ("prepared", "preparado"),
+        ("sold", "vendido"),
+        ("written", "escrito"),
+    ]
+    v_en, v_es = random.choice(verbos)
+    en = f"{sujeto_en} had {v_en} {obj_en} before the meeting."
+    es = f"{sujeto_es} había {v_es} {obj_es} antes de la reunión."
 
-# Flujo de la prueba
-if st.session_state.paso < TOTAL_PREGUNTAS:
-  st.subheader(
-      f"Pregunta {st.session_state.paso + 1} de {TOTAL_PREGUNTAS}"
-  )
-  
-  st.info(f"Tiempo verbal: **{st.session_state.ej_actual['tiempo']}**")
+  elif tiempo_tipo == "Past Perfect Continuous":
+    verbos = [
+        ("developing", "desarrollando"),
+        ("organizing", "organizando"),
+        ("reviewing", "revisando"),
+    ]
+    v_en, v_es = random.choice(verbos)
+    en = f"{sujeto_en} had been {v_en} {obj_en} all morning."
+    es = f"{sujeto_es} había estado {v_es} {obj_es} toda la mañana."
 
-  tts = gTTS(text=st.session_state.ej_actual["en"], lang="en")
-  fp = BytesIO()
-  tts.write_to_fp(fp)
-  fp.seek(0)
-  st.audio(fp.read(), format="audio/mp3")
+  elif tiempo_tipo == "Future Simple (Will)":
+    verbos = [
+        ("buy", "comprará"),
+        ("build", "construirá"),
+        ("organize", "organizará"),
+        ("present", "presentará"),
+    ]
+    v_en, v_es = random.choice(verbos)
+    en = f"{sujeto_en} will {v_en} {obj_en} tomorrow."
+    es = f"{sujeto_es} {v_es} {obj_es} mañana."
 
-  # Formulario de entrada
-  if not st.session_state.respondido:
-    with st.form(key=f"form_{st.session_state.paso}"):
-      respuesta = st.text_input("Escribe lo que escuchaste en inglés:")
-      submit_button = st.form_submit_button(label="Enviar respuesta")
+  elif tiempo_tipo == "Future Continuous":
+    verbos = [
+        ("using", "usando"),
+        ("preparing", "preparando"),
+        ("reviewing", "revisando"),
+    ]
+    v_en, v_es = random.choice(verbos)
+    en = f"{sujeto_en} will be {v_en} {obj_en} at this time tomorrow."
+    es = f"{sujeto_es} estará {v_es} {obj_es} a esta hora mañana."
 
-      if submit_button:
-        limpia_original = (
-            st.session_state.ej_actual["en"].rstrip("?.!").lower()
-        )
-        limpia_respuesta = respuesta.rstrip("?.!").lower()
-
-        st.session_state.respondido = True
-        st.session_state.ultima_respuesta = respuesta
-        
-        if limpia_respuesta == limpia_original:
-          st.session_state.puntuacion += 1
-          st.session_state.es_correcto = True
-        else:
-          st.session_state.es_correcto = False
-
-        st.session_state.historial.append({
-            "pregunta": st.session_state.paso + 1,
-            "tiempo": st.session_state.ej_actual["tiempo"],
-            "original": st.session_state.ej_actual["en"],
-            "usuario": respuesta,
-            "traduccion": st.session_state.ej_actual["es"],
-            "correcto": st.session_state.es_correcto
-        })
-        st.rerun()
-
-  # Muestra resultados y retroalimentación inmediata
-  if st.session_state.respondido:
-    if st.session_state.es_correcto:
-      st.success("¡Correcto! 🎉")
-    else:
-      st.error("❌ No es exacto.")
-      st.write(f"**Lo que era:** {st.session_state.ej_actual['en']}")
-      st.write(f"**Lo que pusiste:** {st.session_state.ultima_respuesta}")
-
-    st.write(f"**Traducción:** {st.session_state.ej_actual['es']}")
-
-    if st.button("Siguiente pregunta ➡️"):
-      st.session_state.paso += 1
-      st.session_state.respondido = False
-      if st.session_state.paso < TOTAL_PREGUNTAS:
-        st.session_state.ej_actual = generar_frase_aleatoria()
-      st.rerun()
-
-else:
-  # Pantalla final, promedio general y repaso
-  st.balloons()
-  st.success("¡Prueba finalizada!")
-  
-  promedio = (st.session_state.puntuacion / TOTAL_PREGUNTAS) * 100
-  
-  st.metric(label="Calificación Final", value=f"{st.session_state.puntuacion} / {TOTAL_PREGUNTAS}", delta=f"{promedio}% de aciertos")
-  
-  st.divider()
-  st.subheader("📋 Repaso detallado de tus respuestas")
-
-  for item in st.session_state.historial:
-    if item["correcto"]:
-      st.markdown(f"✅ **Pregunta {item['pregunta']} ({item['tiempo']})**")
-    else:
-      st.markdown(f"❌ **Pregunta {item['pregunta']} ({item['tiempo']})**")
-    
-    st.write(f"- **Frase original:** `{item['original']}`")
-    st.write(f"- **Tu respuesta:** `{item['usuario']}`")
-    st.write(f"- **Traducción:** {item['traduccion']}")
-    st.markdown("---")
-
-  if st.button("🔄 Repetir la prueba completa"):
-    st.session_state.paso = 0
-    st.session_state.puntuacion = 0
-    st.session_state.ej_actual = generar_frase_aleatoria()
-    st.session_state.respondido = False
-    st.session_state.historial = []
-    st.rerun()
+  elif tiempo_tipo == "Future Perfect":
+    verbos = [
+        ("finished", "terminado"),
+        ("delivered", "entregado"),
+        ("completed", "completado"),
+    ]
+    v_en, v_es = random.choice(verbos)
+    en = f"{sujeto_en} will have {v
