@@ -107,7 +107,6 @@ def generar_frase_aleatoria():
   obj_en, obj_es = random.choice(objetos)
   lugar_en, lugar_es = random.choice(lugares_tiempos)
 
-  # Generación de la estructura gramatical según el tiempo
   if tiempo_tipo == "Present Simple":
     verbos = [
         ("reads", "lee"),
@@ -216,15 +215,4 @@ def generar_frase_aleatoria():
         ("preparing", "preparando"),
         ("reviewing", "revisando"),
     ]
-    v_en, v_es = random.choice(verbos)
-    en = f"{sujeto_en} will be {v_en} {obj_en} at this time tomorrow."
-    es = f"{sujeto_es} estará {v_es} {obj_es} a esta hora mañana."
-
-  elif tiempo_tipo == "Future Perfect":
-    verbos = [
-        ("finished", "terminado"),
-        ("delivered", "entregado"),
-        ("completed", "completado"),
-    ]
-    v_en, v_es = random.choice(verbos)
-    en = f"{sujeto_en} will have {v
+    v_en, v_es = random.choice(verb
