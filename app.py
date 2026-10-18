@@ -4,11 +4,11 @@ import difflib
 from io import BytesIO
 from gtts import gTTS
 
-# Configuración inicial de la página
-st.set_page_config(page_title="Test de Listening Avanzado", page_icon="🎧", layout="centered")
+# Configuración inicial de la página estilo wide
+st.set_page_config(page_title="Práctica de Inglés: Test Dinámico de Estructuras", page_icon="🎓", layout="wide")
 
 # ==========================================
-# BANCO DE VOCABULARIO EXPANDIDO
+# MOTOR DE GENERACIÓN GRAMATICAL ALEATORIA
 # ==========================================
 sujetos = ["The teacher", "A student", "My friend", "The chef", "An artist", "Our neighbor", "The doctor", "A mechanic"]
 verbos_presente = [("drinks", "toma"), ("prepares", "prepara"), ("reads", "lee"), ("paints", "pinta"), ("cleans", "limpia")]
@@ -109,84 +109,91 @@ def generar_audio_bytes(texto):
     return fp.read()
 
 # ==========================================
-# GESTIÓN DEL ESTADO DE STREAMLIT
+# BARRA LATERAL DE CONFIGURACIÓN (SIDEBAR)
 # ==========================================
-if 'configurado' not in st.session_state:
-    st.session_state.configurado = False
+st.sidebar.title("Configuración")
+
+nivel = st.sidebar.selectbox(
+    "Nivel de exigencia:", 
+    ["Flexible (60%)", "Medio (75%)", "Estricto (90%)"], 
+    index=2
+)
+
+st.sidebar.write("### Modo de cantidad de preguntas:")
+modo_preguntas = st.sidebar.radio(
+    label="Selecciona una opción:",
+    options=["Número específico", "Indefinido (hasta salir)"],
+    index=0,
+    label_visibility="collapsed"
+)
+
+# Inicialización de estados
+if 'test_iniciado' not in st.session_state:
+    st.session_state.test_iniciado = False
     st.session_state.finalizado = False
     st.session_state.idx = 0
     st.session_state.aciertos = 0
     st.session_state.suma_porcentajes = 0.0
     st.session_state.historial = []
-    st.session_state.oraciones_sesion = []
     st.session_state.respondido = False
+    st.session_state.oraciones_vistas = set()
+    st.session_state.frase_actual = None
 
-# --- PANTALLA 1: CONFIGURACIÓN ---
-if not st.session_state.configurado:
-    st.title("🎧 Test de Listening Interactiva")
-    st.subheader("Configura tu sesión de práctica")
-    
-    total_p = st.number_input("Número de preguntas:", min_value=1, max_value=20, value=5)
-    nivel = st.selectbox("Nivel de exigencia:", ["Flexible (60%)", "Medio (75%)", "Estricto (90%)"], index=1)
-    
-    if st.button("🚀 Iniciar Test", type="primary"):
-        umbrales = {"Flexible (60%)": 60.0, "Medio (75%)": 75.0, "Estricto (90%)": 90.0}
-        st.session_state.umbral_exito = umbrales[nivel]
-        st.session_state.tipo_exigencia = nivel
-        st.session_state.total_preguntas = total_p
-        st.session_state.oraciones_sesion = [generar_frase_aleatoria() for _ in range(total_p)]
-        st.session_state.configurado = True
-        st.rerun()
+if modo_preguntas == "Número específico":
+    total_p = st.sidebar.number_input("¿Cuántas oraciones deseas responder?", min_value=1, max_value=50, value=5)
+else:
+    total_p = 9999
 
-# --- PANTALLA 3: RESULTADOS FINALES ---
+if st.sidebar.button("🔄 Aplicar y Comenzar Test", type="primary"):
+    umbrales = {"Flexible (60%)": 60.0, "Medio (75%)": 75.0, "Estricto (90%)": 90.0}
+    st.session_state.umbral_exito = umbrales[nivel]
+    st.session_state.tipo_exigencia = nivel
+    st.session_state.total_preguntas = total_p if modo_preguntas == "Número Carson" else total_p
+    st.session_state.idx = 0
+    st.session_state.aciertos = 0
+    st.session_state.suma_porcentajes = 0.0
+    st.session_state.historial = []
+    st.session_state.oraciones_vistas = set()
+    st.session_state.frase_actual = generar_frase_aleatoria()
+    st.session_state.test_iniciado = True
+    st.session_state.finalizado = False
+    st.session_state.respondido = False
+    st.rerun()
+
+# ==========================================
+# INTERFAZ PRINCIPAL DE LA PÁGINA
+# ==========================================
+st.title("🎓 Práctica de Inglés: Test Interactiva Gramatical")
+st.write("Practica tu comprensión auditiva y transcripción con un motor de frases variables infinitas.")
+
+st.info("💡 **Recuerda:** Observa al final de la prueba la retrospectiva y tus audios guardados.")
+
+if not st.session_state.test_iniciado:
+    st.warning("👈 Selecciona los parámetros en la barra lateral izquierda y haz clic en **'Aplicar y Comenzar Test'** para iniciar.")
+
 elif st.session_state.finalizado:
-    st.title("🏁 Resultados Finales y Revisión")
-    st.metric(label="⚙️ Nivel", value=st.session_state.tipo_exigencia)
+    st.success("🎉 ¡Revisión finalizada con éxito!")
+    st.write("## ========== RESULTADOS FINALES Y REVISIÓN ==========")
     
     col1, col2, col3 = st.columns(3)
     col1.metric("Respondidas", len(st.session_state.historial))
     col2.metric("Aprobadas ✅", st.session_state.aciertos)
-    if len(st.session_state.historial) > 0:
+    if st.session_state.historial:
         col3.metric("Precisión Promedio 📊", f"{st.session_state.suma_porcentajes / len(st.session_state.historial):.1f}%")
-
+        
     st.write("---")
-    st.subheader("📋 Historial de Oraciones Practicadas")
-    
     for item in st.session_state.historial:
-        with st.expander(f"📌 {item['n']}. [{item['tiempo']}] - {item['estado_str']}"):
+        with st.expander(f"📌 Oración #{item['n']} [{item['tiempo']}] - {item['estado_str']}"):
             st.write(f"**Original (EN):** `{item['oracion']}`")
-            st.write(f"**Traducción (ES):** {item['traduccion']}")
+            st.write(f"**Traducción:** {item['traduccion']}")
             st.write(f"**Tu respuesta:** {item['respuesta']} (*{item['calificacion']:.1f}%*)")
             st.audio(item['audio_bytes'], format="audio/mp3")
 
-    if st.button("🔄 Reiniciar nuevo test"):
-        for key in list(st.session_state.keys()):
-            del st.session_state[key]
-        st.rerun()
-
-# --- PANTALLA 2: JUEGO / PREGUNTAS ---
 else:
-    if st.session_state.idx >= len(st.session_state.oraciones_sesion):
+    # Evitar desborde del límite específico fijado
+    if modo_preguntas == "Número específico" and st.session_state.idx >= total_p:
         st.session_state.finalizado = True
         st.rerun()
-        
-    frase_actual = st.session_state.oraciones_sesion[st.session_state.idx]
-    
-    st.title(f"Pregunta {st.session_state.idx + 1} de {st.session_state.total_preguntas}")
-    st.info(f"💡 Estructura gramatical: **{frase_actual['tiempo']}**")
-    
-    # Generar audio
-    audio_bytes = generar_audio_bytes(frase_actual['en'])
-    st.audio(audio_bytes, format="audio/mp3")
-    
-    # Formulario de respuesta
-    with st.form(key=f"form_{st.session_state.idx}"):
-        respuesta_usuario = st.text_input("Escribe exactamente lo que escuchaste en inglés:", key=f"input_{st.session_state.idx}").strip()
-        submit_btn = st.form_submit_button("Calificar 🔍", type="primary")
-        
-    if submit_btn:
-        if not respuesta_usuario:
-            st.warning("⚠️ Por favor escribe una respuesta antes de calificar.")
-        else:
-            limpia_original = frase_actual['en'].rstrip("?.!").lower()
-            limpia_respuesta = respuesta_usuario.rstrip("?.!").lower()
+
+    if st.session_state.frase_actual is None:
+        # Forzar generación única no repetida
