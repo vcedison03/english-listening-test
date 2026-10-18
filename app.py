@@ -148,7 +148,7 @@ if st.sidebar.button("🔄 Aplicar y Comenzar Test", type="primary"):
     umbrales = {"Flexible (60%)": 60.0, "Medio (75%)": 75.0, "Estricto (90%)": 90.0}
     st.session_state.umbral_exito = umbrales[nivel]
     st.session_state.tipo_exigencia = nivel
-    st.session_state.total_preguntas = total_p if modo_preguntas == "Número Carson" else total_p
+    st.session_state.total_preguntas = total_p
     st.session_state.idx = 0
     st.session_state.aciertos = 0
     st.session_state.suma_porcentajes = 0.0
@@ -196,4 +196,5 @@ else:
         st.rerun()
 
     if st.session_state.frase_actual is None:
-        # Forzar generación única no repetida
+        nueva_frase = generar_frase_aleatoria()
+        intentos = 0
